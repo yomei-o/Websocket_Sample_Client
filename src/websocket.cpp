@@ -152,13 +152,13 @@ static int ws_idle[MAX_WEBSOCKET];
 #ifdef JAVASCRIPT
 websocket_isusing=function(n)
 #else
-var websocket_isusing(var n,var r)
+var websocket_isusing(var n)
 #endif
 {
 	var ret = false;
 
 	if (n<0 || n>=MAX_WEBSOCKET)return ret;
-	if (ws_handle[n] != null)return ret;
+	if (ws_handle[n] == null)return ret;
 
 	ret = true;
 	return ret;
