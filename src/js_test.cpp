@@ -126,8 +126,8 @@ void ontimeout()
 #endif
 {
 	println("ontimeout()");
-	websocket_send(0, "abcdefg\n");
-	setTimeout(ontimeout, 1000 * 10);
+	//websocket_send(0, "abcdefg\n");
+	//setTimeout(ontimeout, 1000 * 10);
 }
 
 
@@ -138,8 +138,8 @@ onopen = function(n)
 void onopen(var n)
 #endif
 {
-	println("onopen()");
-	setTimeout(ontimeout, 1000*10);
+	//println("onopen()");
+	//setTimeout(ontimeout, 1000*10);
 }
 
 
@@ -149,7 +149,7 @@ onerror = function(n)
 void onerror(var n)
 #endif
 {
-	println("onerror()");
+	//println("onerror()");
 	websocket_close(0);
 	setTimeout(reconnect, 1000*10);
 }
@@ -161,11 +161,13 @@ onclose = function(n)
 void onclose(var n)
 #endif
 {
-	println("onclose()");
+	//println("onclose()");
 	websocket_close(0);
 	setTimeout(reconnect, 1000 * 10);
 }
 
+
+var url = "ws://127.0.0.1:12345/websocket/chat/23412";
 
 
 #ifdef JAVASCRIPT
@@ -174,13 +176,23 @@ reconnect=function()
 void reconnect()
 #endif
 {
-	println("reconnect()");
+	//println("reconnect()");
 
-	websocket_open(0, "ws://127.0.0.1:12345/websocket/aa");
+	websocket_open(0, url);
 	websocket_onopen(0, onopen);
 	websocket_onclose(0, onclose);
 	websocket_onerror(0, onerror);
 	websocket_onmessage(0, onmessage);
+}
+
+#ifdef JAVASCRIPT
+onClickSendMessageButton = function()
+#else
+void onClickSendMessageButton()
+#endif
+{
+	println("onClickSendMessageButton()");
+	websocket_send(0, "abcdefg\n");
 }
 
 
@@ -190,18 +202,11 @@ void reconnect()
 void main_main() {
 #endif
 
-	println("hello");
+	//println("hello");
 
-	websocket_open(0, "ws://127.0.0.1:12345/websocket/aa");
+	reconnect();
 
-
-	websocket_onopen(0, onopen);
-	websocket_onclose(0, onclose);
-	websocket_onerror(0, onerror);
-	websocket_onmessage(0, onmessage);
-
-
-	println("end");
+	//println("end");
 
 
 
