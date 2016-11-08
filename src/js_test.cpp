@@ -88,48 +88,138 @@ void println(const char* a)
 }
 #endif
 
+//
+//
+//
+
+#ifndef JAVASCRIPT
+void onClickExecButton();
+#endif
+
+var url = "ws://43.3.157.103:12345/websocket/chat/12345";
+var command = "ls";
+var result = "abcdef";
+
+//
+//
+//
+
+#ifdef JAVASCRIPT
+createExecButton = function()
+#else
+void createExecButton()
+#endif
+{
+#ifdef JAVASCRIPT
+	$("#button_exec").click(onClickExecButton);
+#else
+	println("createExecButton()");
+#endif
+}
+
+#ifdef JAVASCRIPT
+setUrlText = function(str)
+#else
+void setUrlText(var str)
+#endif
+{
+#ifdef JAVASCRIPT
+	$("#text_url").val(str);
+#else
+	println("setUrlText(\"" + str + "\")");
+#endif
+}
+
+#ifdef JAVASCRIPT
+getUrlText = function()
+#else
+var getUrlText()
+#endif
+{
+	var ret="";
+#ifdef JAVASCRIPT
+	ret=$("#text_url").val();
+#endif
+	return ret;
+}
+
+#ifdef JAVASCRIPT
+setCommandText = function(str)
+#else
+void setCommandText(var str)
+#endif
+{
+#ifdef JAVASCRIPT
+	$("#text_command").val(str);
+#else
+	println("setCommandText(\"" + str + "\")");
+#endif
+}
+
+#ifdef JAVASCRIPT
+getCommandText = function()
+#else
+var getCommandText()
+#endif
+{
+	var ret = "";
+#ifdef JAVASCRIPT
+	ret = $("#text_command").val();
+#endif
+	return ret;
+}
+
+#ifdef JAVASCRIPT
+setResultText = function(str)
+#else
+void setResultText(var str)
+#endif
+{
+#ifdef JAVASCRIPT
+	$("#text_result").val(str);
+#else
+	println("setResultText(\"" + str + "\")");
+#endif
+}
+
+#ifdef JAVASCRIPT
+getResultText = function()
+#else
+var getResultText()
+#endif
+{
+	var ret = "";
+#ifdef JAVASCRIPT
+	ret = $("#text_result").val();
+#endif
+	return ret;
+}
+
+
+#ifdef JAVASCRIPT
+addResultText = function(str)
+#else
+void addResultText(var str)
+#endif
+{
+	str = getResultText() + str;
+	setResultText(str);
+}
 
 //
 // 
 //
 
 
-#ifndef JAVASCRIPT
-void reconnect();
-#endif
-
 
 #ifdef JAVASCRIPT
-func=function()
-#else
-void func()
-#endif
-{
-	println("timeout");
-}
-
-
-#ifdef JAVASCRIPT
-onmessage = function(n,str)
+onmessage = function(n, str)
 #else
 void onmessage(var n, var str)
 #endif
 {
-	println("onmessage(" + str + ")");
+	addResultText(str);
 }
-
-
-#ifdef JAVASCRIPT
-ontimeout=function()
-#else
-void ontimeout()
-#endif
-{
-	println("ontimeout()");
-	//websocket_send(0, "abcdefg\n");
-	//setTimeout(ontimeout, 1000 * 10);
-}
-
 
 
 #ifdef JAVASCRIPT
@@ -139,7 +229,8 @@ void onopen(var n)
 #endif
 {
 	//println("onopen()");
-	//setTimeout(ontimeout, 1000*10);
+	addResultText("websocket open OK\n");
+	websocket_send(0, command + "\n");
 }
 
 
@@ -151,7 +242,7 @@ void onerror(var n)
 {
 	//println("onerror()");
 	websocket_close(0);
-	setTimeout(reconnect, 1000*10);
+	addResultText("websocket open error\n");
 }
 
 
@@ -162,69 +253,94 @@ void onclose(var n)
 #endif
 {
 	//println("onclose()");
+	addResultText("websocket closed OK\n");
 	websocket_close(0);
-	setTimeout(reconnect, 1000 * 10);
 }
 
 
-var url = "ws://127.0.0.1:12345/websocket/chat/23412";
+//
+//
+//
+
 
 
 #ifdef JAVASCRIPT
-reconnect=function()
+onClickExecButton = function()
 #else
-void reconnect()
+void onClickExecButton()
 #endif
 {
-	//println("reconnect()");
+	var ret;
+	//println("onClickExecButton()");
+	//println(getUrlText());
 
-	websocket_open(0, url);
-	websocket_onopen(0, onopen);
-	websocket_onclose(0, onclose);
-	websocket_onerror(0, onerror);
-	websocket_onmessage(0, onmessage);
+	command = getCommandText();
+	url = getUrlText();
+
+	result = "";
+	setResultText(result);
+
+	if (websocket_isusing(0) == false){
+
+		ret = websocket_open(0, url);
+		//println("ret="+ret);
+		websocket_onopen(0, onopen);
+		websocket_onerror(0, onerror);
+		websocket_onclose(0, onclose);
+		websocket_onmessage(0, onmessage);
+	}
+	websocket_send(0, command + "\n");
+
+	//println("onClickExecButton() end");
 }
 
-#ifdef JAVASCRIPT
-onClickSendMessageButton = function()
-#else
-void onClickSendMessageButton()
-#endif
-{
-	println("onClickSendMessageButton()");
-	websocket_send(0, "abcdefg\n");
-}
-
-
-
+//
+//
+//
 
 #ifndef JAVASCRIPT
 void main_main() {
 #endif
 
-	//println("hello");
-
-	reconnect();
-
-	//println("end");
-
-
 
 
 #ifndef JAVASCRIPT
 }
 #endif
+
+
+
+#ifdef JAVASCRIPT 
+jQuery().ready(function()
+#else
+void jquery_ready()
+#endif
+{
+
+
+	//println("hello");
+
+	createExecButton();
+	setUrlText(url);
+	setCommandText(command);
+	setResultText(result);
+
+	//println("end");
+
+
+}
+#ifdef JAVASCRIPT 
+);
+#endif
+
+
 
 
 #ifndef JAVASCRIPT
 int main(int argc, char* argv[])
 {
 	main_main();
-	for (;;){
-		loopTimeout(1000);
-		websocket_loop(1000);
-		sleepTimeout(1000);
-	}
+	jquery_ready();
 	return 0;
 }
 #endif
