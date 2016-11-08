@@ -61,54 +61,111 @@ println = function(src)
  alert(src);
 }
 //
+//
+//
+var url = "ws://43.3.157.103:12345/websocket/chat/12345";
+var command = "ls";
+var result = "abcdef";
+//
+//
+//
+createExecButton = function()
+{
+ $("#button_exec").click(onClickExecButton);
+}
+setUrlText = function(str)
+{
+ $("#text_url").val(str);
+}
+getUrlText = function()
+{
+ var ret="";
+ ret=$("#text_url").val();
+ return ret;
+}
+setCommandText = function(str)
+{
+ $("#text_command").val(str);
+}
+getCommandText = function()
+{
+ var ret = "";
+ ret = $("#text_command").val();
+ return ret;
+}
+setResultText = function(str)
+{
+ $("#text_result").val(str);
+}
+getResultText = function()
+{
+ var ret = "";
+ ret = $("#text_result").val();
+ return ret;
+}
+addResultText = function(str)
+{
+ str = getResultText() + str;
+ setResultText(str);
+}
+//
 // 
 //
-func=function()
+onmessage = function(n, str)
 {
- println("timeout");
-}
-onmessage = function(n,str)
-{
- println("onmessage(" + str + ")");
-}
-ontimeout=function()
-{
- println("ontimeout()");
- //websocket_send(0, "abcdefg\n");
- //setTimeout(ontimeout, 1000 * 10);
+ addResultText(str);
 }
 onopen = function(n)
 {
  //println("onopen()");
- //setTimeout(ontimeout, 1000*10);
+ addResultText("websocket open OK\n");
+ websocket_send(0, command + "\n");
 }
 onerror = function(n)
 {
  //println("onerror()");
  websocket_close(0);
- setTimeout(reconnect, 1000*10);
+ addResultText("websocket open error\n");
 }
 onclose = function(n)
 {
  //println("onclose()");
+ addResultText("websocket closed OK\n");
  websocket_close(0);
- setTimeout(reconnect, 1000 * 10);
 }
-var url = "ws://127.0.0.1:12345/websocket/chat/23412";
-reconnect=function()
+//
+//
+//
+onClickExecButton = function()
 {
- //println("reconnect()");
- websocket_open(0, url);
- websocket_onopen(0, onopen);
- websocket_onclose(0, onclose);
- websocket_onerror(0, onerror);
- websocket_onmessage(0, onmessage);
+ var ret;
+ //println("onClickExecButton()");
+ //println(getUrlText());
+ command = getCommandText();
+ url = getUrlText();
+ result = "";
+ setResultText(result);
+ if (websocket_isusing(0) == false){
+  ret = websocket_open(0, url);
+  //println("ret="+ret);
+  websocket_onopen(0, onopen);
+  websocket_onerror(0, onerror);
+  websocket_onclose(0, onclose);
+  websocket_onmessage(0, onmessage);
+ }
+ websocket_send(0, command + "\n");
+ //println("onClickExecButton() end");
 }
-onClickSendMessageButton = function()
+//
+//
+//
+jQuery().ready(function()
 {
- println("onClickSendMessageButton()");
- websocket_send(0, "abcdefg\n");
-}
  //println("hello");
- reconnect();
+ createExecButton();
+ setUrlText(url);
+ setCommandText(command);
+ setResultText(result);
  //println("end");
+}
+);

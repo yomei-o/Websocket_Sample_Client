@@ -84,7 +84,7 @@ websocket_isusing=function(n)
 {
  var ret = false;
  if (n<0 || n>=20)return ret;
- if (ws_handle[n] != null)return ret;
+ if (ws_handle[n] == null)return ret;
  ret = true;
  return ret;
 }
