@@ -61,6 +61,8 @@ either expressed or implied, of the FreeBSD Project.
 #define closesocket(s) close(s)
 #endif	/* unix */
 
+#define MY_SOCKET_TIMEOUT (30*1000)
+
 //
 // init
 //
@@ -92,6 +94,30 @@ void mywebsocket_done()
 //
 // socket
 //
+
+static void setsockopt_timeout(int fd, int tt)
+{
+	int timeout = tt;
+	int ret;
+	struct timeval tv;
+
+	tv.tv_sec = tt / 1000;
+	tv.tv_usec = (tt % 1000) * 1000;
+#if defined(_WIN32) || defined(__CYGWIN__)
+	ret = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&tt, (socklen_t) sizeof(tt));
+#endif	
+#ifdef unix
+	ret = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&tv, (socklen_t) sizeof(tv));
+#endif
+	tv.tv_sec = tt / 1000;
+	tv.tv_usec = (tt % 1000) * 1000;
+#if defined(_WIN32) || defined(__CYGWIN__)
+	ret = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tt, (socklen_t)sizeof(tt));
+#endif
+#ifdef unix
+	ret = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, (socklen_t)sizeof(tv));
+#endif	
+}
 
 
 static int dualsock_create(const char* hostname, int port)
@@ -363,6 +389,8 @@ static int mywebsocket_connect__(const char* url, int ct)
 	s = dualsock_create(server, port);
 
 	if (s == -1)return ret;
+
+	setsockopt_timeout(s, MY_SOCKET_TIMEOUT);
 
 	//printf("connect!!\n");
 	//printf("%s", tmp);

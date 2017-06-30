@@ -47,6 +47,8 @@ either expressed or implied, of the FreeBSD Project.
 #include <crtdbg.h>
 #endif
 
+#include "wscclient.h"
+
 #ifdef _WIN32
 #define POPEN_READMODE "rb"
 #define popen _popen
@@ -69,12 +71,15 @@ either expressed or implied, of the FreeBSD Project.
 #define closesocket(s) close(s)
 #endif	/* unix */
 
+#define MAX_NUM_OF_WEBSOCKE_STREAM 10
+
+#define MY_SOCKET_TIMEOUT (30*1000)
 
 //
 // sleep
 //
 
-void
+static void
 ysleep(unsigned int s)
 {
 #if defined(unix) || defined(__APPLE__)
@@ -119,6 +124,30 @@ void mywebsocket_done()
 //
 // socket
 //
+
+static void setsockopt_timeout(int fd, int tt)
+{
+	int timeout = tt;
+	int ret;
+	struct timeval tv;
+
+	tv.tv_sec = tt / 1000;
+	tv.tv_usec = (tt % 1000) * 1000;
+#if defined(_WIN32) || defined(__CYGWIN__)
+	ret = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&tt, (socklen_t) sizeof(tt));
+#endif	
+#ifdef unix
+	ret = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&tv, (socklen_t) sizeof(tv));
+#endif
+	tv.tv_sec = tt / 1000;
+	tv.tv_usec = (tt % 1000) * 1000;
+#if defined(_WIN32) || defined(__CYGWIN__)
+	ret = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tt, (socklen_t)sizeof(tt));
+#endif
+#ifdef unix
+	ret = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, (socklen_t)sizeof(tv));
+#endif	
+}
 
 
 static int dualsock_create(const char* hostname, int port)
@@ -391,6 +420,8 @@ static int mywebsocket_connect__(const char* url, int ct)
 
 	if (s == -1)return ret;
 
+	setsockopt_timeout(s, MY_SOCKET_TIMEOUT);
+
 	//printf("connect!!\n");
 	//printf("%s", tmp);
 
@@ -629,6 +660,35 @@ int mywebsocket_wait(int s, int(*f)(void* vp, int type, void* data, int sz), voi
 	return mywebsocket_wait_time(s, 1000, f, vp);
 }
 
+//
+//
+//
+
+
+struct websocket_stream{
+	int s;
+	char cmdbuf[1024];
+};
+
+
+static struct websocket_stream ws[MAX_NUM_OF_WEBSOCKE_STREAM];
+
+int wss_init()
+{
+
+}
+int wss_done()
+{
+}
+
+int wss_open(const char* a)
+{
+}
+
+void wss_close(int h);
+
+int wss_read(int h, const char* str, int sz);
+int wss_write(int h, const char* str, int sz);
 
 //
 //
