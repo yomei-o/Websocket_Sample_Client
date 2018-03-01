@@ -47,7 +47,7 @@ either expressed or implied, of the FreeBSD Project.
 #include <crtdbg.h>
 #endif
 
-#include "wscclient.h"
+//#include "wscclient.h"
 
 #ifdef _WIN32
 #define POPEN_READMODE "rb"
@@ -645,7 +645,7 @@ int mywebsocket_wait_time(int s,int tt, int(*f)(void* vp,int type, void* data, i
 		//mywebsocket_data(s, 1, "hogehoge", 8);
 
 		f(vp, bt1, buf, sz);
-		return 0;
+		return 1;
 	}
 	if (op == 0 || op == 1 || op == 2){
 		r=f(vp, bt1, buf, sz);
@@ -660,35 +660,6 @@ int mywebsocket_wait(int s, int(*f)(void* vp, int type, void* data, int sz), voi
 	return mywebsocket_wait_time(s, 1000, f, vp);
 }
 
-//
-//
-//
-
-
-struct websocket_stream{
-	int s;
-	char cmdbuf[1024];
-};
-
-
-static struct websocket_stream ws[MAX_NUM_OF_WEBSOCKE_STREAM];
-
-int wss_init()
-{
-
-}
-int wss_done()
-{
-}
-
-int wss_open(const char* a)
-{
-}
-
-void wss_close(int h);
-
-int wss_read(int h, const char* str, int sz);
-int wss_write(int h, const char* str, int sz);
 
 //
 //
@@ -770,6 +741,7 @@ int main()
 {
 	int s;
 	int ct = 0;
+	int tm=0;
 #if defined(_WIN32) && !defined(__GNUC__)
 	//	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_WNDW);
 	//	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_WNDW);
@@ -781,12 +753,21 @@ int main()
 	mywebsocket_init();
 
 	for (;;){
+		tm = 0;
 		printf("wsclient connecting...\n");
 		//s = mywebsocket_connect("ws://43.3.153.102:12345/websocket/char/12345");
-		s = mywebsocket_connect("ws://43.3.157.103:12345/websocket/chat/12345");
+		//s = mywebsocket_connect("ws://43.3.157.103:12345/websocket/chat/12345");
+		s = mywebsocket_connect("ws://irrigate.sensprout.net:12345/websocket/chat/12345?ki=1&kp=admin");
 		if (s != -1){
+			int r;
 			printf("wsclient waiting mesages\n");
-			while (mywebsocket_wait(s, callback_func, (void*)s) >= 0){
+			while (1){
+				tm++;
+				r = mywebsocket_wait(s, callback_func, (void*)s);
+				if (r > 0)tm = 0;
+				if (tm > 20)break;
+				if (r < 0)break;
+				//printf("r=%d  tm=%d  \n", r, tm);
 				ct++;
 				if(ct%10==0)printf(".");
 				if (ct % 600 == 0)printf("\n");
